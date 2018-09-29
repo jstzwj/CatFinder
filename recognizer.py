@@ -1,4 +1,5 @@
 import os
+import model
 import numpy as np
 import tensorflow as tf
 import pprint
@@ -31,13 +32,9 @@ FLAGS = tf.app.flags.FLAGS
 
 
 def main(_):
-    pp.pprint(flags.FLAGS.__flags)
+    pprint.pprint(FLAGS.__flags)
 
-    if FLAGS.input_width is None:
-        FLAGS.input_width = FLAGS.input_height
-    if FLAGS.output_width is None:
-        FLAGS.output_width = FLAGS.output_height
-
+    # create directory
     if not os.path.exists(FLAGS.checkpoint_dir):
         os.makedirs(FLAGS.checkpoint_dir)
     if not os.path.exists(FLAGS.sample_dir):
@@ -48,39 +45,19 @@ def main(_):
     run_config.gpu_options.allow_growth = True
 
     with tf.Session(config=run_config) as sess:
-        if FLAGS.dataset == 'mnist':
-            dcgan = DCGAN(
-                sess,
-                input_width=FLAGS.input_width,
-                input_height=FLAGS.input_height,
-                output_width=FLAGS.output_width,
-                output_height=FLAGS.output_height,
-                batch_size=FLAGS.batch_size,
-                sample_num=FLAGS.batch_size,
-                y_dim=10,
-                z_dim=FLAGS.generate_test_images,
-                dataset_name=FLAGS.dataset,
-                input_fname_pattern=FLAGS.input_fname_pattern,
-                crop=FLAGS.crop,
-                checkpoint_dir=FLAGS.checkpoint_dir,
-                sample_dir=FLAGS.sample_dir,
-                data_dir=FLAGS.data_dir)
-        else:
-            dcgan = DCGAN(
-                sess,
-                input_width=FLAGS.input_width,
-                input_height=FLAGS.input_height,
-                output_width=FLAGS.output_width,
-                output_height=FLAGS.output_height,
-                batch_size=FLAGS.batch_size,
-                sample_num=FLAGS.batch_size,
-                z_dim=FLAGS.generate_test_images,
-                dataset_name=FLAGS.dataset,
-                input_fname_pattern=FLAGS.input_fname_pattern,
-                crop=FLAGS.crop,
-                checkpoint_dir=FLAGS.checkpoint_dir,
-                sample_dir=FLAGS.sample_dir,
-                data_dir=FLAGS.data_dir)
+        dcgan = model.CNN(
+            sess,
+            input_width=FLAGS.input_width,
+            input_height=FLAGS.input_height,
+            batch_size=FLAGS.batch_size,
+            sample_num=FLAGS.batch_size,
+            y_dim=10,
+            dataset_name=FLAGS.dataset,
+            input_fname_pattern=FLAGS.input_fname_pattern,
+            crop=FLAGS.crop,
+            checkpoint_dir=FLAGS.checkpoint_dir,
+            sample_dir=FLAGS.sample_dir,
+            data_dir=FLAGS.data_dir)
 
         show_all_variables()
 
