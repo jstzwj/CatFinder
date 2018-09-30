@@ -165,28 +165,29 @@ def download_mnist(dirpath):
             print('Decompressing ', file_name)
 
 def download_cat(dirpath):
-    data_dir = os.path.join(dirpath, 'mnist')
+    data_dir = os.path.join(dirpath, 'cat')
     if os.path.exists(data_dir):
-        print('Found MNIST - skip')
+        print('Found cat - skip')
         return
     else:
         os.mkdir(data_dir)
-    url_base = 'http://yann.lecun.com/exdb/mnist/'
-    file_names = ['train-images-idx3-ubyte.gz',
-                  'train-labels-idx1-ubyte.gz',
-                  't10k-images-idx3-ubyte.gz',
-                  't10k-labels-idx1-ubyte.gz']
-    for file_name in file_names:
-        url = (url_base+file_name).format(**locals())
+
+    urls = []
+    with open('cat_imagenet.synset.txt', 'r') as f:
+        for line in f.readlines():
+            urls.append(line.strip())
+    
+    for url in urls:
         print(url)
+        file_name = os.path.basename(url)
         out_path = os.path.join(data_dir, file_name)
         
-        r = requests.get(url)
-        with open(out_path, "wb") as code:
-            code.write(r.content)
-        with gzip.GzipFile(mode="rb", fileobj=open(out_path, 'rb')) as g:
-            open(out_path[:-2], "wb").write(g.read())
-            print('Decompressing ', file_name)
+        try:
+            r = requests.get(url)
+            with open(out_path, "wb") as code:
+                code.write(r.content)
+        except requests.exceptions.ConnectionError:
+            print("Failed to get the image.")
 
 
 def prepare_data_dir(path='./data'):
