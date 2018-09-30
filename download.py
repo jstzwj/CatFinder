@@ -11,7 +11,7 @@ from tqdm import tqdm
 from six.moves import urllib
 
 parser = argparse.ArgumentParser(description='Download dataset.')
-parser.add_argument('datasets', metavar='N', type=str, nargs='+', choices=['celebA', 'lsun', 'mnist'],
+parser.add_argument('datasets', metavar='N', type=str, nargs='+', choices=['celebA', 'lsun', 'mnist', 'cat'],
                     help='name of dataset to download [celebA, lsun, mnist]')
 
 
@@ -62,7 +62,6 @@ def get_confirm_token(response):
         if key.startswith('download_warning'):
             return value
     return None
-
 
 def save_response_content(response, destination, chunk_size=32*1024):
     total_size = int(response.headers.get('content-length', 0))
@@ -165,6 +164,30 @@ def download_mnist(dirpath):
             open(out_path[:-2], "wb").write(g.read())
             print('Decompressing ', file_name)
 
+def download_cat(dirpath):
+    data_dir = os.path.join(dirpath, 'mnist')
+    if os.path.exists(data_dir):
+        print('Found MNIST - skip')
+        return
+    else:
+        os.mkdir(data_dir)
+    url_base = 'http://yann.lecun.com/exdb/mnist/'
+    file_names = ['train-images-idx3-ubyte.gz',
+                  'train-labels-idx1-ubyte.gz',
+                  't10k-images-idx3-ubyte.gz',
+                  't10k-labels-idx1-ubyte.gz']
+    for file_name in file_names:
+        url = (url_base+file_name).format(**locals())
+        print(url)
+        out_path = os.path.join(data_dir, file_name)
+        
+        r = requests.get(url)
+        with open(out_path, "wb") as code:
+            code.write(r.content)
+        with gzip.GzipFile(mode="rb", fileobj=open(out_path, 'rb')) as g:
+            open(out_path[:-2], "wb").write(g.read())
+            print('Decompressing ', file_name)
+
 
 def prepare_data_dir(path='./data'):
     if not os.path.exists(path):
@@ -181,3 +204,5 @@ if __name__ == '__main__':
         download_lsun('./data')
     elif 'mnist' in args.datasets:
         download_mnist('./data')
+    elif 'cat' in args.datasets:
+        download_cat('./data')
