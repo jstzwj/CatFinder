@@ -173,10 +173,16 @@ def download_cat(dirpath):
         os.mkdir(data_dir)
 
     urls = []
+    with open('02121808imagenet.synset.txt', 'r') as f:
+        for line in f.readlines():
+            urls.append(line.strip())
+    with open('02124623imagenet.synset.txt', 'r') as f:
+        for line in f.readlines():
+            urls.append(line.strip())
     with open('cat_imagenet.synset.txt', 'r') as f:
         for line in f.readlines():
             urls.append(line.strip())
-    
+
     for url in urls:
         print(url)
         file_name = os.path.basename(url)
@@ -186,7 +192,7 @@ def download_cat(dirpath):
             r = requests.get(url)
             with open(out_path, "wb") as code:
                 code.write(r.content)
-        except requests.exceptions.ConnectionError:
+        except:
             print("Failed to get the image.")
 
 

@@ -70,52 +70,30 @@ class CNN(object):
         self.build_model()
 
     def build_model(self):
-        self.inputs = tf.placeholder(
-            tf.float32, [self.batch_size] + image_dims, name='real_images')
+      # tf Graph input
+      self.X = tf.placeholder(tf.float32, [None, num_input])
+      self.Y = tf.placeholder(tf.float32, [None, num_classes])
+      self.keep_prob = tf.placeholder(tf.float32) # dropout (keep probability)
 
-        inputs = self.inputs
+      # Store layers weight & bias
+      self.weights = {
+        # 5x5 conv, 1 input, 32 outputs
+        'wc1': tf.Variable(tf.random_normal([5, 5, 1, 32])),
+        # 5x5 conv, 32 inputs, 64 outputs
+        'wc2': tf.Variable(tf.random_normal([5, 5, 32, 64])),
+        # fully connected, 7*7*64 inputs, 1024 outputs
+        'wd1': tf.Variable(tf.random_normal([7*7*64, 1024])),
+        # 1024 inputs, 10 outputs (class prediction)
+        'out': tf.Variable(tf.random_normal([1024, num_classes]))
+      }
 
-        self.z = tf.placeholder(
-            tf.float32, [None, self.z_dim], name='z')
-        self.z_sum = histogram_summary("z", self.z)
-
-        self.G = self.generator(self.z, self.y)
-        self.D, self.D_logits = self.discriminator(inputs, self.y, reuse=False)
-        self.sampler = self.sampler(self.z, self.y)
-        self.D_, self.D_logits_ = self.discriminator(
-            self.G, self.y, reuse=True)
-
-        self.d_sum = histogram_summary("d", self.D)
-        self.d__sum = histogram_summary("d_", self.D_)
-        self.G_sum = image_summary("G", self.G)
-
-        def sigmoid_cross_entropy_with_logits(x, y):
-            try:
-                return tf.nn.sigmoid_cross_entropy_with_logits(logits=x, labels=y)
-            except:
-                return tf.nn.sigmoid_cross_entropy_with_logits(logits=x, targets=y)
-
-        self.d_loss_real = tf.reduce_mean(
-            sigmoid_cross_entropy_with_logits(self.D_logits, tf.ones_like(self.D)))
-        self.d_loss_fake = tf.reduce_mean(
-            sigmoid_cross_entropy_with_logits(self.D_logits_, tf.zeros_like(self.D_)))
-        self.g_loss = tf.reduce_mean(
-            sigmoid_cross_entropy_with_logits(self.D_logits_, tf.ones_like(self.D_)))
-
-        self.d_loss_real_sum = scalar_summary("d_loss_real", self.d_loss_real)
-        self.d_loss_fake_sum = scalar_summary("d_loss_fake", self.d_loss_fake)
-
-        self.d_loss = self.d_loss_real + self.d_loss_fake
-
-        self.g_loss_sum = scalar_summary("g_loss", self.g_loss)
-        self.d_loss_sum = scalar_summary("d_loss", self.d_loss)
-
-        t_vars = tf.trainable_variables()
-
-        self.d_vars = [var for var in t_vars if 'd_' in var.name]
-        self.g_vars = [var for var in t_vars if 'g_' in var.name]
-
-        self.saver = tf.train.Saver()
+      self.biases = {
+        'bc1': tf.Variable(tf.random_normal([32])),
+        'bc2': tf.Variable(tf.random_normal([64])),
+        'bd1': tf.Variable(tf.random_normal([1024])),
+        'out': tf.Variable(tf.random_normal([num_classes]))
+      }
+      self.saver = tf.train.Saver()
 
     def train(self, config):
         d_optim = tf.train.AdamOptimizer(config.learning_rate, beta1=config.beta1) \
