@@ -167,8 +167,7 @@ def download_mnist(dirpath):
 def download_cat(dirpath):
     data_dir = os.path.join(dirpath, 'cat')
     if os.path.exists(data_dir):
-        print('Found cat - skip')
-        return
+        print('Found cat - continue')
     else:
         os.mkdir(data_dir)
 
@@ -187,6 +186,10 @@ def download_cat(dirpath):
         print(url)
         file_name = os.path.basename(url)
         out_path = os.path.join(data_dir, file_name)
+
+        if os.path.exists(out_path):
+            print("File exists - skip")
+            continue
         
         try:
             r = requests.get(url)

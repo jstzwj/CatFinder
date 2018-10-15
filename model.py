@@ -12,36 +12,17 @@ def conv_out_size_same(size, stride):
 
 
 class CNN(object):
-    def __init__(self, sess, input_height=108, input_width=108, crop=True,
-                 batch_size=64, sample_num=64,
-                 y_dim=None, z_dim=100, f_dim=64,
-                 fc_dim=1024, c_dim=3, dataset_name='default',
+    def __init__(self, sess, input_height=108, input_width=108, num_classes=2,
+                 batch_size=64, sample_num=64, dataset_name='default',
                  input_fname_pattern='*.jpg', checkpoint_dir=None, sample_dir=None, data_dir='./data'):
-        """
-        Args:
-          sess: TensorFlow session
-          batch_size: The size of batch. Should be specified before training.
-          y_dim: (optional) Dimension of dim for y. [None]
-          z_dim: (optional) Dimension of dim for Z. [100]
-          f_dim: (optional) Dimension of gen filters in first conv layer. [64]
-          fc_dim: (optional) Dimension of gen units for for fully connected layer. [1024]
-          c_dim: (optional) Dimension of image color. For grayscale input, set to 1. [3]
-        """
         self.sess = sess
-        self.crop = crop
 
         self.batch_size = batch_size
         self.sample_num = sample_num
 
         self.input_height = input_height
         self.input_width = input_width
-
-        self.y_dim = y_dim
-        self.z_dim = z_dim
-
-        self.f_dim = f_dim
-
-        self.fc_dim = fc_dim
+        self.num_classes = num_classes
 
         self.dataset_name = dataset_name
         self.input_fname_pattern = input_fname_pattern
@@ -71,8 +52,8 @@ class CNN(object):
 
     def build_model(self):
       # tf Graph input
-      self.X = tf.placeholder(tf.float32, [None, num_input])
-      self.Y = tf.placeholder(tf.float32, [None, num_classes])
+      self.X = tf.placeholder(tf.float32, [None, self.input_height*self.input_width])
+      self.Y = tf.placeholder(tf.float32, [None, self.num_classes])
       self.keep_prob = tf.placeholder(tf.float32) # dropout (keep probability)
 
       # Store layers weight & bias
